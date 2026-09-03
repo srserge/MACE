@@ -31,6 +31,8 @@
 		{ "Name": "RigLogic",                "Enabled": true },
 		{ "Name": "LiveLink",                "Enabled": true },
 		{ "Name": "LiveLinkControlRig",      "Enabled": true },
-		{ "Name": "HairStrands",             "Enabled": true }
+		{ "Name": "HairStrands",             "Enabled": true },
+		{ "Name": "GameplayAbilities", "Enabled": true },
+		{ "Name": "ModularGameplay",   "Enabled": true }
 	]
 }
