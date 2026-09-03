@@ -20,3 +20,9 @@ Saved/
 # OS
 .DS_Store
 Thumbs.db
+
+# Contenido de UE: solo se versiona lo propio.
+# GASP se reimporta siguiendo la guia de importacion.
+/Content/*
+!/Content/Sandbox/
+'@
