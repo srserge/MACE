@@ -1,20 +1,20 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "MaceCombat.h"
+#include "MaceCore.h"
 
-#define LOCTEXT_NAMESPACE "FMaceCombatModule"
+#define LOCTEXT_NAMESPACE "FMaceCoreModule"
 
-void FMaceCombatModule::StartupModule()
+void FMaceCoreModule::StartupModule()
 {
 	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
 }
 
-void FMaceCombatModule::ShutdownModule()
+void FMaceCoreModule::ShutdownModule()
 {
 	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
 	// we call this function before unloading the module.
 }
 
 #undef LOCTEXT_NAMESPACE
-	
-IMPLEMENT_MODULE(FMaceCombatModule, MaceCombat)
+
+IMPLEMENT_MODULE(FMaceCoreModule, MaceCore)

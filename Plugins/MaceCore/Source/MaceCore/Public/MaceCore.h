@@ -4,7 +4,7 @@
 
 #include "Modules/ModuleManager.h"
 
-class FMaceCombatModule : public IModuleInterface
+class FMaceCoreModule : public IModuleInterface
 {
 public:
 
