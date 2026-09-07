@@ -8,46 +8,32 @@ public class MaceCore : ModuleRules
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
-		PublicIncludePaths.AddRange(
-			new string[] {
-				// ... add public include paths required here ...
-			}
-			);
-
-
-		PrivateIncludePaths.AddRange(
-			new string[] {
-				// ... add other private include paths required here ...
-			}
-			);
-
-
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
 				"Core",
-				// ... add other public dependencies that you statically link with here ...
+				"CoreUObject",
+				"Engine",
+				"EnhancedInput",
+				"GameplayAbilities",
+				"GameplayTags",
+				"GameplayTasks",
+				"ModularGameplay",
+				"NetCore"
 			}
 			);
-
 
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"CoreUObject",
-				"Engine",
-				"Slate",
-				"SlateCore",
-				// ... add private dependencies that you statically link with here ...
+				"PhysicsCore"
 			}
 			);
 
-
-		DynamicallyLoadedModuleNames.AddRange(
-			new string[]
-			{
-				// ... add any modules that your module loads dynamically here ...
-			}
-			);
+		// Forbidden in this module, by design:
+		//   PoseSearch, Chooser, BlendStack, AnimationWarpingRuntime,
+		//   MotionWarping, Mover, ChaosMover, Locomotor, DrawDebugLibrary, UMG
+		// They belong in MaceAnimation. Needing one here means the
+		// abstraction is in the wrong place.
 	}
 }

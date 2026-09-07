@@ -1,0 +1,57 @@
+// Copyright srSerge. All Rights Reserved.
+
+#pragma once
+
+#include "NativeGameplayTags.h"
+
+/**
+ * Native gameplay tags used by MaceCore.
+ *
+ * A tag declared here is a symbol the compiler checks. A tag written as text in
+ * an .ini fails silently on a typo, so the rule is: if code mentions it, it is
+ * declared here. The .ini is only for tags that content alone refers to.
+ *
+ * Every string is prefixed with "Mace." so the tag tree stays separate from the
+ * host project's own tags when the plugin is dropped into someone else's game.
+ */
+namespace MaceGameplayTags
+{
+	// Why an ability failed to activate.
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ActivateFail_IsDead);
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ActivateFail_Cooldown);
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ActivateFail_Cost);
+
+	// Input. Bound to InputActions through UMaceInputConfig.
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Move);
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Look);
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Fire);
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Melee);
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Dodge);
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Block);
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Reload);
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_SwapWeapon);
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Interact);
+
+	// Hit zones. Carried by a UPhysicalMaterialWithTags on the physics asset.
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(HitZone_Head);
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(HitZone_Torso);
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(HitZone_Limb);
+
+	// How a hit is classified. Drives the hitmarker in the sample.
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Class_Normal);
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Class_NonLethal);
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Class_Lethal);
+
+	// Combatant state.
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Dead);
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Incapacitated);
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Invulnerable);
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Blocking);
+
+	// SetByCaller magnitudes.
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Damage);
+
+	// Events the core broadcasts. The sample turns them into game feel.
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_Confirmed);
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Death);
+}
