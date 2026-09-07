@@ -90,6 +90,12 @@ void UMacePawnExtensionComponent::InitializeAbilitySystem()
 		return;
 	}
 
+	// Without this, ability sets are granted but nothing can activate them:
+	// the ability system has no idea which actor owns it and which one acts.
+	// Owner is whatever actor holds the component, avatar is the pawn, so this
+	// is correct whether the ASC lives on the pawn or on the player state.
+	ASC->InitAbilityActorInfo(ASC->GetOwner(), Owner);
+
 	int32 GrantedSets = 0;
 	for (const UMaceAbilitySet* AbilitySet : PawnData->AbilitySets)
 	{
