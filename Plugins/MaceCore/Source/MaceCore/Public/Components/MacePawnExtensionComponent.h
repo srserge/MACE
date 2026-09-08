@@ -8,6 +8,7 @@
 #include "MacePawnExtensionComponent.generated.h"
 
 class UAbilitySystemComponent;
+class UMaceCombatStyle;
 class UMacePawnData;
 
 /**
@@ -51,6 +52,16 @@ public:
 	/** The ability system component this pawn uses, or null if it has none. */
 	UFUNCTION(BlueprintPure, Category = "Mace|Combat")
 	UAbilitySystemComponent* GetAbilitySystemComponent() const;
+
+	/**
+	 * The combat style in effect right now.
+	 *
+	 * Derived, never stored as truth: the equipped weapon's style, falling back
+	 * to the pawn data's base style when the hands are empty. Until equipment
+	 * exists there is no weapon, so this is always the base style.
+	 */
+	UFUNCTION(BlueprintPure, Category = "Mace|Combat")
+	const UMaceCombatStyle* GetActiveCombatStyle() const;
 
 protected:
 

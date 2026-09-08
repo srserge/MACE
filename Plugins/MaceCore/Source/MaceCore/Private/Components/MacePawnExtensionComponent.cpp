@@ -6,6 +6,7 @@
 #include "AbilitySystemGlobals.h"
 #include "GameFramework/Pawn.h"
 
+#include "Data/MaceCombatStyle.h"
 #include "Data/MacePawnData.h"
 #include "MaceLogChannels.h"
 
@@ -26,6 +27,14 @@ UAbilitySystemComponent* UMacePawnExtensionComponent::GetAbilitySystemComponent(
 	// Resolved through globals rather than a cast: this finds the component
 	// whether it lives on the pawn or on the player state.
 	return UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetOwner());
+}
+
+const UMaceCombatStyle* UMacePawnExtensionComponent::GetActiveCombatStyle() const
+{
+	// Derived, not stored. Once equipment exists this reads the active weapon
+	// first and only falls through to the base style when the hands are empty,
+	// so holstering restores the base style with nothing to remember.
+	return PawnData ? PawnData->BaseCombatStyle : nullptr;
 }
 
 void UMacePawnExtensionComponent::BeginPlay()
@@ -97,6 +106,8 @@ void UMacePawnExtensionComponent::InitializeAbilitySystem()
 	ASC->InitAbilityActorInfo(ASC->GetOwner(), Owner);
 
 	int32 GrantedSets = 0;
+
+	// What the character can do regardless of what it holds.
 	for (const UMaceAbilitySet* AbilitySet : PawnData->AbilitySets)
 	{
 		if (AbilitySet)
@@ -106,10 +117,25 @@ void UMacePawnExtensionComponent::InitializeAbilitySystem()
 		}
 	}
 
+	// What the active combat style adds on top. The same handles record both,
+	// so a style change revokes only what the style granted once the style
+	// component exists to track them separately.
+	if (const UMaceCombatStyle* Style = GetActiveCombatStyle())
+	{
+		for (const UMaceAbilitySet* AbilitySet : Style->AbilitySets)
+		{
+			if (AbilitySet)
+			{
+				AbilitySet->GiveToAbilitySystem(ASC, &GrantedHandles, this);
+				++GrantedSets;
+			}
+		}
+	}
+
 	bAbilitySystemInitialized = true;
 
-	UE_LOG(LogMace, Log, TEXT("Mace combatant ready on [%s] with pawn data [%s], %d ability set(s) granted."),
-		*GetNameSafe(Owner), *GetNameSafe(PawnData), GrantedSets);
+	UE_LOG(LogMace, Log, TEXT("Mace combatant ready on [%s] with pawn data [%s], style [%s], %d ability set(s) granted."),
+		*GetNameSafe(Owner), *GetNameSafe(PawnData), *GetNameSafe(GetActiveCombatStyle()), GrantedSets);
 }
 
 void UMacePawnExtensionComponent::UninitializeAbilitySystem()

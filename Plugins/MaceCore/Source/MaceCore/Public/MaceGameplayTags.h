@@ -42,6 +42,15 @@ namespace MaceGameplayTags
 	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Class_NonLethal);
 	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Class_Lethal);
 
+	// Stance: what the character is doing right now. Changes several times a
+	// second, so it is only ever a tag - never a combat style swap. Abilities
+	// sharing an input tag let GAS pick between them by stance, which is how
+	// the same trigger fires a gun while aiming and pistol-whips while not.
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Stance_Aiming);
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Stance_Blocking);
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Stance_Sprinting);
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Stance_Equipping);
+
 	// Combatant state.
 	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Dead);
 	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Incapacitated);

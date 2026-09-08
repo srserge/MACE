@@ -26,6 +26,11 @@ namespace MaceGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Damage_Class_NonLethal, "Mace.Damage.Class.NonLethal", "Incapacitating hit. Yellow hitmarker.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Damage_Class_Lethal, "Mace.Damage.Class.Lethal", "Lethal hit. Red hitmarker.");
 
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Stance_Aiming, "Mace.Stance.Aiming", "Aiming down sights. Routes the fire input to the ranged attack.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Stance_Blocking, "Mace.Stance.Blocking", "Guarding against incoming attacks.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Stance_Sprinting, "Mace.Stance.Sprinting", "Sprinting. Blocks most combat abilities.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Stance_Equipping, "Mace.Stance.Equipping", "Drawing or holstering. Blocks attacks until the weapon is in hand.");
+
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(State_Dead, "Mace.State.Dead", "The combatant is dead.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(State_Incapacitated, "Mace.State.Incapacitated", "The combatant is down but not dead.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(State_Invulnerable, "Mace.State.Invulnerable", "Immune to incoming damage, such as during a dodge.");

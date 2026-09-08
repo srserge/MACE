@@ -9,6 +9,7 @@
 class APawn;
 class UAnimInstance;
 class UMaceAbilitySet;
+class UMaceCombatStyle;
 class UMaceDamageProfile;
 
 /**
@@ -33,9 +34,23 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mace|Pawn")
 	TSubclassOf<APawn> PawnClass;
 
-	/** What this character knows how to do, and which attributes it owns. */
+	/**
+	 * What this character knows how to do regardless of what it is holding,
+	 * and which attributes it owns. Health, dodging, interacting.
+	 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mace|Abilities")
 	TArray<TObjectPtr<UMaceAbilitySet>> AbilitySets;
+
+	/**
+	 * How this character fights with empty hands.
+	 *
+	 * A permanent trait, not a slot that gets overwritten: a boxer has an
+	 * unarmed style, a character who cannot fight bare-handed has none. The
+	 * style actually in effect is derived at runtime from the equipped weapon,
+	 * falling back to this one, so nothing ever writes here.
+	 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mace|Abilities")
+	TObjectPtr<UMaceCombatStyle> BaseCombatStyle;
 
 	/**
 	 * Animation blueprint driving this character.
