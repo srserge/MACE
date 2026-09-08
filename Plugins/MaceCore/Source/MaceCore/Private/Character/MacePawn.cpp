@@ -4,6 +4,7 @@
 
 #include "AbilitySystemComponent.h"
 
+#include "Components/MaceInputBufferComponent.h"
 #include "Components/MacePawnExtensionComponent.h"
 #include "Data/MacePawnData.h"
 #include "MaceGameplayTags.h"
@@ -21,6 +22,8 @@ AMacePawn::AMacePawn(const FObjectInitializer& ObjectInitializer)
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
 	PawnExtensionComponent = CreateDefaultSubobject<UMacePawnExtensionComponent>(TEXT("PawnExtensionComponent"));
+
+	InputBufferComponent = CreateDefaultSubobject<UMaceInputBufferComponent>(TEXT("InputBufferComponent"));
 }
 
 UAbilitySystemComponent* AMacePawn::GetAbilitySystemComponent() const
@@ -38,6 +41,19 @@ void AMacePawn::PostInitializeComponents()
 	if (PawnData && PawnExtensionComponent)
 	{
 		PawnExtensionComponent->SetPawnData(PawnData);
+	}
+}
+
+void AMacePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	// Super runs first on purpose: a Blueprint child that binds its own
+	// movement and camera keeps working, and Mace only adds the ability
+	// bindings on top.
+	if (PawnExtensionComponent)
+	{
+		PawnExtensionComponent->InitializePlayerInput(PlayerInputComponent);
 	}
 }
 

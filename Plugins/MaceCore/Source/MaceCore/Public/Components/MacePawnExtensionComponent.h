@@ -2,12 +2,15 @@
 
 #pragma once
 
+#include "Abilities/GameplayAbilityTypes.h"
 #include "Components/PawnComponent.h"
 #include "Data/MaceAbilitySet.h"
+#include "GameplayTagContainer.h"
 
 #include "MacePawnExtensionComponent.generated.h"
 
 class UAbilitySystemComponent;
+class UInputComponent;
 class UMaceCombatStyle;
 class UMacePawnData;
 
@@ -49,6 +52,19 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Mace|Combat")
 	void SetPawnData(const UMacePawnData* InPawnData);
 
+	/**
+	 * Binds the player data's input config so that pressing a key tries to
+	 * activate the abilities carrying the matching input tag.
+	 *
+	 * Call it from the pawn's SetupPlayerInputComponent. It lives here rather
+	 * than on a pawn class so that the two base pawns, and any pawn a buyer
+	 * brings, share one implementation.
+	 *
+	 * Only touches the abilities listed in the config: any other input the
+	 * pawn already handles, such as movement, is left alone.
+	 */
+	void InitializePlayerInput(UInputComponent* PlayerInputComponent);
+
 	/** The ability system component this pawn uses, or null if it has none. */
 	UFUNCTION(BlueprintPure, Category = "Mace|Combat")
 	UAbilitySystemComponent* GetAbilitySystemComponent() const;
@@ -67,6 +83,22 @@ protected:
 
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+	/** An input tag was pressed: activate whatever ability carries it. */
+	void HandleAbilityInputPressed(FGameplayTag InputTag);
+
+	/** An input tag was released: tell the running ability the key came up. */
+	void HandleAbilityInputReleased(FGameplayTag InputTag);
+
+	/**
+	 * Raises the generic replicated input event that the ability tasks listen
+	 * on.
+	 *
+	 * AbilitySpecInputPressed alone only reaches UGameplayAbility::InputPressed,
+	 * which is an empty stub in the engine, while WaitInputPress subscribes to
+	 * the replicated event instead. Without this the two never meet.
+	 */
+	void NotifyAbilityInputEvent(FGameplayAbilitySpec& Spec, EAbilityGenericReplicatedEvent::Type EventType);
 
 	/** Grants every ability set in the current pawn data. Server only. */
 	void InitializeAbilitySystem();

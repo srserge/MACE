@@ -6,7 +6,13 @@
 
 #include "MaceGameplayAbility.generated.h"
 
+class ACharacter;
+class AController;
 class APawn;
+class APlayerController;
+class UAbilitySystemComponent;
+class UMaceCombatStyle;
+class UMaceInputBufferComponent;
 class UMacePawnData;
 class UMacePawnExtensionComponent;
 
@@ -44,17 +50,44 @@ public:
 
 	UMaceGameplayAbility(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-	/** The pawn running this ability, or null if the avatar is not a pawn. */
-	UFUNCTION(BlueprintPure, Category = "Mace|Ability")
-	APawn* GetMacePawn() const;
+	//~ Helpers for the Blueprint abilities that derive from this class. All of
+	//~ them resolve from the ability's actor info, so none needs a target pin.
 
-	/** Shortcut to the extension component that granted this ability's set. */
+	//~ GetAbilitySystemComponentFromActorInfo is not redeclared here: UGameplayAbility
+	//~ already exposes it to Blueprint and returns the same type, since Mace does
+	//~ not subclass the ability system component.
+
+	/** The pawn acting, or null if the avatar is not a pawn. */
 	UFUNCTION(BlueprintPure, Category = "Mace|Ability")
-	UMacePawnExtensionComponent* GetPawnExtensionComponent() const;
+	APawn* GetPawnFromActorInfo() const;
+
+	/** The avatar as a character, or null if it is a plain pawn. */
+	UFUNCTION(BlueprintPure, Category = "Mace|Ability")
+	ACharacter* GetCharacterFromActorInfo() const;
+
+	/** The controller driving the avatar, AI or player. */
+	UFUNCTION(BlueprintPure, Category = "Mace|Ability")
+	AController* GetControllerFromActorInfo() const;
+
+	/** The player controller, or null when an AI is acting. */
+	UFUNCTION(BlueprintPure, Category = "Mace|Ability")
+	APlayerController* GetPlayerControllerFromActorInfo() const;
+
+	/** The extension component that granted this ability's set. */
+	UFUNCTION(BlueprintPure, Category = "Mace|Ability")
+	UMacePawnExtensionComponent* GetPawnExtensionComponentFromActorInfo() const;
 
 	/** The data asset describing this character. Null if none was assigned. */
 	UFUNCTION(BlueprintPure, Category = "Mace|Ability")
-	const UMacePawnData* GetPawnData() const;
+	const UMacePawnData* GetPawnDataFromActorInfo() const;
+
+	/** The combat style in effect right now. Derived, never stored. */
+	UFUNCTION(BlueprintPure, Category = "Mace|Ability")
+	const UMaceCombatStyle* GetCombatStyleFromActorInfo() const;
+
+	/** The input buffer, for consuming a press that arrived slightly early. */
+	UFUNCTION(BlueprintPure, Category = "Mace|Ability")
+	UMaceInputBufferComponent* GetInputBufferComponentFromActorInfo() const;
 
 	EMaceAbilityActivationPolicy GetActivationPolicy() const { return ActivationPolicy; }
 

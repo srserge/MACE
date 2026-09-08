@@ -40,4 +40,7 @@ namespace MaceGameplayTags
 
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Event_Hit_Confirmed, "Mace.Event.Hit.Confirmed", "A hit landed on a combatant. Carries the damage class.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Event_Death, "Mace.Event.Death", "A combatant died.");
+
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Event_ComboWindow_Open, "Mace.Event.ComboWindow.Open", "The attack can now be continued into the next link of the combo.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Event_ComboWindow_Close, "Mace.Event.ComboWindow.Close", "The chance to continue the combo has passed.");
 }

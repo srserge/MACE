@@ -10,6 +10,7 @@
 
 class UAbilitySystemComponent;
 class UMacePawnData;
+class UMaceInputBufferComponent;
 class UMacePawnExtensionComponent;
 
 /**
@@ -55,12 +56,17 @@ public:
 protected:
 
 	virtual void PostInitializeComponents() override;
+	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mace|Combat")
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mace|Combat")
 	TObjectPtr<UMacePawnExtensionComponent> PawnExtensionComponent;
+
+	/** Remembers presses that arrive slightly too early to be acted on. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mace|Input")
+	TObjectPtr<UMaceInputBufferComponent> InputBufferComponent;
 
 	/**
 	 * Which character this is: abilities, attributes, animation and UI.

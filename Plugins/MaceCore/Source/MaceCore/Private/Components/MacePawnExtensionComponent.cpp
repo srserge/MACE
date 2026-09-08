@@ -4,10 +4,14 @@
 
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
+#include "EnhancedInputComponent.h"
 #include "GameFramework/Pawn.h"
 
+#include "Components/MaceInputBufferComponent.h"
 #include "Data/MaceCombatStyle.h"
+#include "Data/MaceInputConfig.h"
 #include "Data/MacePawnData.h"
+#include "Data/MacePlayerData.h"
 #include "MaceLogChannels.h"
 
 UMacePawnExtensionComponent::UMacePawnExtensionComponent(const FObjectInitializer& ObjectInitializer)
@@ -27,6 +31,168 @@ UAbilitySystemComponent* UMacePawnExtensionComponent::GetAbilitySystemComponent(
 	// Resolved through globals rather than a cast: this finds the component
 	// whether it lives on the pawn or on the player state.
 	return UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetOwner());
+}
+
+void UMacePawnExtensionComponent::InitializePlayerInput(UInputComponent* PlayerInputComponent)
+{
+	const UMacePlayerData* PlayerData = Cast<UMacePlayerData>(PawnData);
+	if (!PlayerData || !PlayerData->InputConfig)
+	{
+		// An AI combatant has pawn data but no input config, which is normal.
+		return;
+	}
+
+	UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent);
+	if (!EnhancedInput)
+	{
+		UE_LOG(LogMace, Error, TEXT("[%s] expects an enhanced input component. Check DefaultInputComponentClass in DefaultInput.ini."),
+			*GetNameSafe(GetOwner()));
+		return;
+	}
+
+	int32 BoundActions = 0;
+
+	for (const FMaceInputAction& Action : PlayerData->InputConfig->AbilityInputActions)
+	{
+		if (!Action.InputAction || !Action.InputTag.IsValid())
+		{
+			continue;
+		}
+
+		// The tag rides along as a payload, so one handler serves every action
+		// instead of a function per key.
+		//
+		// Started rather than Triggered: Triggered repeats every frame the key
+		// is held unless the input action happens to carry a Pressed trigger,
+		// which would fire an attack per frame and flood the input buffer.
+		// Started fires once when the input begins, whatever the action's
+		// trigger configuration, so a new input action cannot reintroduce the
+		// problem by being configured differently.
+		EnhancedInput->BindAction(Action.InputAction, ETriggerEvent::Started, this, &UMacePawnExtensionComponent::HandleAbilityInputPressed, Action.InputTag);
+		EnhancedInput->BindAction(Action.InputAction, ETriggerEvent::Completed, this, &UMacePawnExtensionComponent::HandleAbilityInputReleased, Action.InputTag);
+
+		++BoundActions;
+	}
+
+	UE_LOG(LogMace, Log, TEXT("Bound %d ability input action(s) on [%s] from [%s]."),
+		BoundActions, *GetNameSafe(GetOwner()), *GetNameSafe(PlayerData->InputConfig));
+}
+
+void UMacePawnExtensionComponent::HandleAbilityInputPressed(FGameplayTag InputTag)
+{
+	// Recorded before anything else, so a press that no ability can use right
+	// now is still available to whatever opens a window a moment later.
+	if (UMaceInputBufferComponent* Buffer = UMaceInputBufferComponent::FindInputBufferComponent(GetOwner()))
+	{
+		Buffer->RecordInput(InputTag);
+	}
+
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
+	if (!ASC || !InputTag.IsValid())
+	{
+		return;
+	}
+
+	// Collect first: activating an ability can change the spec array, and
+	// iterating it while it moves underneath is how this crashes.
+	TArray<FGameplayAbilitySpecHandle> Handles;
+	for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
+	{
+		if (Spec.Ability && Spec.GetDynamicSpecSourceTags().HasTagExact(InputTag))
+		{
+			Handles.Add(Spec.Handle);
+		}
+	}
+
+	for (const FGameplayAbilitySpecHandle& Handle : Handles)
+	{
+		FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromHandle(Handle);
+		if (!Spec)
+		{
+			continue;
+		}
+
+		if (Spec->IsActive())
+		{
+			// Already running: let it decide what a second press means. This is
+			// what a combo ability listens to in order to chain.
+			ASC->AbilitySpecInputPressed(*Spec);
+
+			// AbilitySpecInputPressed alone is not enough. It only calls
+			// UGameplayAbility::InputPressed, which is an empty stub in the
+			// engine, while the WaitInputPress ability task subscribes to the
+			// InputPressed generic replicated event instead. Without this the
+			// two paths never meet and the task never fires.
+			NotifyAbilityInputEvent(*Spec, EAbilityGenericReplicatedEvent::InputPressed);
+		}
+		else
+		{
+			ASC->TryActivateAbility(Handle);
+		}
+	}
+
+	UE_LOG(LogMaceAbility, Verbose, TEXT("Input [%s] matched %d ability(ies) on [%s]."),
+		*InputTag.ToString(), Handles.Num(), *GetNameSafe(GetOwner()));
+}
+
+void UMacePawnExtensionComponent::HandleAbilityInputReleased(FGameplayTag InputTag)
+{
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
+	if (!ASC || !InputTag.IsValid())
+	{
+		return;
+	}
+
+	TArray<FGameplayAbilitySpecHandle> Handles;
+	for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
+	{
+		if (Spec.Ability && Spec.IsActive() && Spec.GetDynamicSpecSourceTags().HasTagExact(InputTag))
+		{
+			Handles.Add(Spec.Handle);
+		}
+	}
+
+	for (const FGameplayAbilitySpecHandle& Handle : Handles)
+	{
+		if (FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromHandle(Handle))
+		{
+			ASC->AbilitySpecInputReleased(*Spec);
+			NotifyAbilityInputEvent(*Spec, EAbilityGenericReplicatedEvent::InputReleased);
+		}
+	}
+}
+
+void UMacePawnExtensionComponent::NotifyAbilityInputEvent(FGameplayAbilitySpec& Spec, EAbilityGenericReplicatedEvent::Type EventType)
+{
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
+	if (!ASC)
+	{
+		return;
+	}
+
+	// The prediction key of the activation this event belongs to, read from the
+	// running instance the same way the ability tasks derive the key they
+	// subscribe with, so both sides agree on which activation is meant.
+	FPredictionKey ActivationKey;
+	for (const UGameplayAbility* Instance : Spec.GetAbilityInstances())
+	{
+		if (Instance)
+		{
+			ActivationKey = Instance->GetCurrentActivationInfo().GetActivationPredictionKey();
+			break;
+		}
+	}
+
+	// Fired locally so a predicting client reacts on the same frame, and
+	// forwarded to the server so the authoritative copy of the ability sees the
+	// same event. On the server the local call is already authoritative.
+	ASC->InvokeReplicatedEvent(EventType, Spec.Handle, ActivationKey, ASC->ScopedPredictionKey);
+
+	const AActor* Owner = GetOwner();
+	if (Owner && !Owner->HasAuthority())
+	{
+		ASC->ServerSetReplicatedEvent(EventType, Spec.Handle, ActivationKey, ASC->ScopedPredictionKey);
+	}
 }
 
 const UMaceCombatStyle* UMacePawnExtensionComponent::GetActiveCombatStyle() const

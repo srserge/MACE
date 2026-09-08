@@ -3,9 +3,14 @@
 #include "Abilities/MaceGameplayAbility.h"
 
 #include "AbilitySystemComponent.h"
+#include "GameFramework/Character.h"
+#include "GameFramework/Controller.h"
 #include "GameFramework/Pawn.h"
+#include "GameFramework/PlayerController.h"
 
+#include "Components/MaceInputBufferComponent.h"
 #include "Components/MacePawnExtensionComponent.h"
+#include "Data/MaceCombatStyle.h"
 #include "Data/MacePawnData.h"
 #include "MaceGameplayTags.h"
 
@@ -21,21 +26,77 @@ UMaceGameplayAbility::UMaceGameplayAbility(const FObjectInitializer& ObjectIniti
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
 }
 
-APawn* UMaceGameplayAbility::GetMacePawn() const
+APawn* UMaceGameplayAbility::GetPawnFromActorInfo() const
 {
 	return CurrentActorInfo ? Cast<APawn>(CurrentActorInfo->AvatarActor.Get()) : nullptr;
 }
 
-UMacePawnExtensionComponent* UMaceGameplayAbility::GetPawnExtensionComponent() const
+ACharacter* UMaceGameplayAbility::GetCharacterFromActorInfo() const
+{
+	return CurrentActorInfo ? Cast<ACharacter>(CurrentActorInfo->AvatarActor.Get()) : nullptr;
+}
+
+AController* UMaceGameplayAbility::GetControllerFromActorInfo() const
+{
+	if (!CurrentActorInfo)
+	{
+		return nullptr;
+	}
+
+	if (AController* Controller = CurrentActorInfo->PlayerController.Get())
+	{
+		return Controller;
+	}
+
+	// The ability system's owner is not always the thing holding the
+	// controller: walk up from the avatar, and keep walking when a pawn is
+	// possessed through an intermediate actor.
+	AActor* Owner = CurrentActorInfo->OwnerActor.Get();
+	while (Owner)
+	{
+		if (AController* Controller = Cast<AController>(Owner))
+		{
+			return Controller;
+		}
+
+		if (const APawn* Pawn = Cast<APawn>(Owner))
+		{
+			return Pawn->GetController();
+		}
+
+		Owner = Owner->GetOwner();
+	}
+
+	return nullptr;
+}
+
+APlayerController* UMaceGameplayAbility::GetPlayerControllerFromActorInfo() const
+{
+	return CurrentActorInfo ? CurrentActorInfo->PlayerController.Get() : nullptr;
+}
+
+UMacePawnExtensionComponent* UMaceGameplayAbility::GetPawnExtensionComponentFromActorInfo() const
 {
 	return CurrentActorInfo ? UMacePawnExtensionComponent::FindPawnExtensionComponent(CurrentActorInfo->AvatarActor.Get()) : nullptr;
 }
 
-const UMacePawnData* UMaceGameplayAbility::GetPawnData() const
+const UMacePawnData* UMaceGameplayAbility::GetPawnDataFromActorInfo() const
 {
-	const UMacePawnExtensionComponent* Extension = GetPawnExtensionComponent();
+	const UMacePawnExtensionComponent* Extension = GetPawnExtensionComponentFromActorInfo();
 
 	return Extension ? Extension->GetPawnData() : nullptr;
+}
+
+const UMaceCombatStyle* UMaceGameplayAbility::GetCombatStyleFromActorInfo() const
+{
+	const UMacePawnExtensionComponent* Extension = GetPawnExtensionComponentFromActorInfo();
+
+	return Extension ? Extension->GetActiveCombatStyle() : nullptr;
+}
+
+UMaceInputBufferComponent* UMaceGameplayAbility::GetInputBufferComponentFromActorInfo() const
+{
+	return CurrentActorInfo ? UMaceInputBufferComponent::FindInputBufferComponent(CurrentActorInfo->AvatarActor.Get()) : nullptr;
 }
 
 bool UMaceGameplayAbility::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const

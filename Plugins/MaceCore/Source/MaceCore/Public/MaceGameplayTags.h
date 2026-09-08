@@ -63,4 +63,11 @@ namespace MaceGameplayTags
 	// Events the core broadcasts. The sample turns them into game feel.
 	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_Confirmed);
 	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Death);
+
+	// Sent by a notify state on an attack montage to mark the stretch in which
+	// the attack can be continued. An event rather than a loose tag because the
+	// ability system exposes no way to add a loose tag from Blueprint, and the
+	// notify state that sends these is Blueprint.
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_ComboWindow_Open);
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_ComboWindow_Close);
 }
