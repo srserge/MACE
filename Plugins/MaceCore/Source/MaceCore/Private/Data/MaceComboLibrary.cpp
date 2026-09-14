@@ -2,7 +2,7 @@
 
 #include "Data/MaceComboLibrary.h"
 
-FGameplayTag UMaceComboLibrary::FindNextLink(const FMaceComboLink& Link, FGameplayTag InputTag)
+FGameplayTag UMaceComboLibrary::FindNextStep(const FMaceComboStep& Link, FGameplayTag InputTag)
 {
-	return Link.FindNextLink(InputTag);
+	return Link.FindNextStep(InputTag);
 }

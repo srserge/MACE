@@ -4,12 +4,52 @@
 
 #include "GameplayTagContainer.h"
 
-#include "MaceComboLink.generated.h"
+#include "MaceComboStep.generated.h"
 
 class UAnimMontage;
 
 /**
- * Where a combo link can go next, and what input takes it there.
+ * A pool of interchangeable montages for one step of a combo, split by hand.
+ *
+ * The step is fixed; the animation that fills it is not. That separation is the
+ * whole point. An array of montages indexed by chain position makes one index
+ * mean two things at once - where the player is in the combo, and what is
+ * playing - so the only way to add variety to it is to make the combo longer.
+ * Here the position stays fixed and the variety lives inside it.
+ *
+ * Split by hand rather than pooled together because alternation has to be
+ * deterministic, not random. If the previous step threw a left, this one draws
+ * from Right. Two left jabs in a row read wrong even when each animation is
+ * correct on its own, and that is most of what separates a chain that looks
+ * authored from one that looks sampled.
+ *
+ * Every montage in the same array must share a timing envelope: the same
+ * wind-up, active window and recovery. The variety is meant to be visual only.
+ * The moment two candidates take different lengths the player cannot learn the
+ * rhythm, and an enemy reacting to the wind-up cannot behave consistently
+ * either, because its reaction delay is measured against a length that keeps
+ * changing.
+ *
+ * Left unprefixed deliberately: this is a small helper of one system rather
+ * than part of the framework vocabulary, which is the same line Lyra draws
+ * when it writes FInteractionOption instead of FLyraInteractionOption.
+ */
+USTRUCT(BlueprintType)
+struct FHandedMontageSet
+{
+	GENERATED_BODY()
+
+	/** Candidates thrown with the left hand or leg. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mace")
+	TArray<TObjectPtr<UAnimMontage>> Left;
+
+	/** Candidates thrown with the right hand or leg. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mace")
+	TArray<TObjectPtr<UAnimMontage>> Right;
+};
+
+/**
+ * Where a combo step can go next, and what input takes it there.
  *
  * A list of these rather than named NextOnLight / NextOnHeavy fields, so that
  * adding a third kind of attack later is a new row instead of a new field on
@@ -24,13 +64,13 @@ struct FMaceComboTransition
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mace", Meta = (Categories = "Mace.InputTag"))
 	FGameplayTag InputTag;
 
-	/** The LinkId this input leads to. */
+	/** The StepId this input leads to. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mace", Meta = (Categories = "Mace.Combo"))
-	FGameplayTag NextLinkId;
+	FGameplayTag NextStepId;
 };
 
 /**
- * FMaceComboLink
+ * FMaceComboStep
  *
  * One attack in a combo chain: the animation it plays, what it does on hit,
  * and where the chain can go from it.
@@ -47,13 +87,13 @@ struct FMaceComboTransition
  * opening move.
  */
 USTRUCT(BlueprintType)
-struct FMaceComboLink
+struct FMaceComboStep
 {
 	GENERATED_BODY()
 
-	/** Identifies this link so other links can point at it. Mace.Combo.Light1 */
+	/** Identifies this step so other steps can point at it. Mace.Combo.Light.1 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mace", Meta = (Categories = "Mace.Combo"))
-	FGameplayTag LinkId;
+	FGameplayTag StepId;
 
 	/** The attack animation. Carries the combo and hit window notify states. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mace")
@@ -67,18 +107,18 @@ struct FMaceComboLink
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mace", Meta = (Categories = "Mace.Damage.Class"))
 	FGameplayTag DamageClass;
 
-	/** Where the chain can go from here. Empty means this link ends the combo. */
+	/** Where the chain can go from here. Empty means this step ends the combo. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mace", Meta = (TitleProperty = "InputTag"))
 	TArray<FMaceComboTransition> Transitions;
 
-	/** The LinkId this input leads to, or an invalid tag if it does not. */
-	FGameplayTag FindNextLink(const FGameplayTag& InputTag) const
+	/** The StepId this input leads to, or an invalid tag if it does not. */
+	FGameplayTag FindNextStep(const FGameplayTag& InputTag) const
 	{
 		for (const FMaceComboTransition& Transition : Transitions)
 		{
 			if (Transition.InputTag == InputTag)
 			{
-				return Transition.NextLinkId;
+				return Transition.NextStepId;
 			}
 		}
 
