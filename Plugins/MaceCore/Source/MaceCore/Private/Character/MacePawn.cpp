@@ -4,7 +4,7 @@
 
 #include "AbilitySystemComponent.h"
 
-#include "Components/MaceInputBufferComponent.h"
+#include "Components/MaceAbilitySystemComponent.h"
 #include "Components/MacePawnExtensionComponent.h"
 #include "Data/MacePawnData.h"
 #include "MaceGameplayTags.h"
@@ -14,7 +14,7 @@ AMacePawn::AMacePawn(const FObjectInitializer& ObjectInitializer)
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
+	AbilitySystemComponent = CreateDefaultSubobject<UMaceAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 	AbilitySystemComponent->SetIsReplicated(true);
 
 	// Mixed suits a player-controlled pawn: the owning client gets full effect
@@ -22,8 +22,6 @@ AMacePawn::AMacePawn(const FObjectInitializer& ObjectInitializer)
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
 	PawnExtensionComponent = CreateDefaultSubobject<UMacePawnExtensionComponent>(TEXT("PawnExtensionComponent"));
-
-	InputBufferComponent = CreateDefaultSubobject<UMaceInputBufferComponent>(TEXT("InputBufferComponent"));
 }
 
 UAbilitySystemComponent* AMacePawn::GetAbilitySystemComponent() const

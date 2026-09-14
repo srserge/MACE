@@ -7,7 +7,7 @@
 #include "EnhancedInputComponent.h"
 #include "GameFramework/Pawn.h"
 
-#include "Components/MaceInputBufferComponent.h"
+#include "Components/MaceAbilitySystemComponent.h"
 #include "Data/MaceCombatStyle.h"
 #include "Data/MaceInputConfig.h"
 #include "Data/MacePawnData.h"
@@ -82,9 +82,9 @@ void UMacePawnExtensionComponent::HandleAbilityInputPressed(FGameplayTag InputTa
 {
 	// Recorded before anything else, so a press that no ability can use right
 	// now is still available to whatever opens a window a moment later.
-	if (UMaceInputBufferComponent* Buffer = UMaceInputBufferComponent::FindInputBufferComponent(GetOwner()))
+	if (UMaceAbilitySystemComponent* MaceASC = UMaceAbilitySystemComponent::FindAbilitySystemComponent(GetOwner()))
 	{
-		Buffer->RecordInput(InputTag);
+		MaceASC->RecordInput(InputTag);
 	}
 
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();

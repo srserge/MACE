@@ -8,7 +8,7 @@
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 
-#include "Components/MaceInputBufferComponent.h"
+#include "Components/MaceAbilitySystemComponent.h"
 #include "Components/MacePawnExtensionComponent.h"
 #include "Data/MaceCombatStyle.h"
 #include "Data/MacePawnData.h"
@@ -94,9 +94,9 @@ const UMaceCombatStyle* UMaceGameplayAbility::GetCombatStyleFromActorInfo() cons
 	return Extension ? Extension->GetActiveCombatStyle() : nullptr;
 }
 
-UMaceInputBufferComponent* UMaceGameplayAbility::GetInputBufferComponentFromActorInfo() const
+UMaceAbilitySystemComponent* UMaceGameplayAbility::GetMaceAbilitySystemComponentFromActorInfo() const
 {
-	return CurrentActorInfo ? UMaceInputBufferComponent::FindInputBufferComponent(CurrentActorInfo->AvatarActor.Get()) : nullptr;
+	return CurrentActorInfo ? UMaceAbilitySystemComponent::FindAbilitySystemComponent(CurrentActorInfo->AvatarActor.Get()) : nullptr;
 }
 
 bool UMaceGameplayAbility::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const

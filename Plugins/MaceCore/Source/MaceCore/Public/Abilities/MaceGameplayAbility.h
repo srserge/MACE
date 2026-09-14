@@ -12,7 +12,7 @@ class APawn;
 class APlayerController;
 class UAbilitySystemComponent;
 class UMaceCombatStyle;
-class UMaceInputBufferComponent;
+class UMaceAbilitySystemComponent;
 class UMacePawnData;
 class UMacePawnExtensionComponent;
 
@@ -53,9 +53,9 @@ public:
 	//~ Helpers for the Blueprint abilities that derive from this class. All of
 	//~ them resolve from the ability's actor info, so none needs a target pin.
 
-	//~ GetAbilitySystemComponentFromActorInfo is not redeclared here: UGameplayAbility
-	//~ already exposes it to Blueprint and returns the same type, since Mace does
-	//~ not subclass the ability system component.
+	//~ GetAbilitySystemComponentFromActorInfo stays the engine's, returning the base
+	//~ type. Use GetMaceAbilitySystemComponentFromActorInfo when the Mace additions
+	//~ are needed, such as the input buffer.
 
 	/** The pawn acting, or null if the avatar is not a pawn. */
 	UFUNCTION(BlueprintPure, Category = "Mace|Ability")
@@ -85,9 +85,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Mace|Ability")
 	const UMaceCombatStyle* GetCombatStyleFromActorInfo() const;
 
-	/** The input buffer, for consuming a press that arrived slightly early. */
+	/** The ability system component, which owns the input buffer. */
 	UFUNCTION(BlueprintPure, Category = "Mace|Ability")
-	UMaceInputBufferComponent* GetInputBufferComponentFromActorInfo() const;
+	UMaceAbilitySystemComponent* GetMaceAbilitySystemComponentFromActorInfo() const;
 
 	EMaceAbilityActivationPolicy GetActivationPolicy() const { return ActivationPolicy; }
 
