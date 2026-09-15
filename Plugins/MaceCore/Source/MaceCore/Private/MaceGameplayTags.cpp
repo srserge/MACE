@@ -35,6 +35,7 @@ namespace MaceGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(State_Incapacitated, "Mace.State.Incapacitated", "The combatant is down but not dead.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(State_Invulnerable, "Mace.State.Invulnerable", "Immune to incoming damage, such as during a dodge.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(State_Blocking, "Mace.State.Blocking", "Actively blocking incoming attacks.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(State_MovementLocked, "Mace.State.MovementLocked", "Movement input is ignored, such as during a melee attack without root motion.");
 
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(SetByCaller_Damage, "Mace.SetByCaller.Damage", "Damage magnitude passed to a gameplay effect by caller.");
 

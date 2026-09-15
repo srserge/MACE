@@ -57,6 +57,11 @@ namespace MaceGameplayTags
 	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Invulnerable);
 	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Blocking);
 
+	// A tag rather than a call into the movement component, because MaceCore
+	// cannot depend on any movement plugin. Whatever produces the pawn's movement
+	// input reads it and holds the character in place.
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_MovementLocked);
+
 	// SetByCaller magnitudes.
 	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Damage);
 
