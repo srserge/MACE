@@ -8,6 +8,7 @@
 
 class UAnimInstance;
 class UMaceAbilitySet;
+class UMaceComboSet;
 
 /**
  * UMaceCombatStyle
@@ -41,6 +42,18 @@ public:
 	/** Everything the character can do while this style is active. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mace|Abilities")
 	TArray<TObjectPtr<UMaceAbilitySet>> AbilitySets;
+
+	/**
+	 * The sequence of blows this style throws when nothing else is chosen.
+	 *
+	 * The entry point to the whole melee chain: the style is derived from the
+	 * equipped weapon, so changing weapon changes the combos without the
+	 * ability knowing. It is also the fallback for when the selection table
+	 * matches no row, which is what lets the system work before the table
+	 * exists at all.
+	 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mace|Combat")
+	TObjectPtr<UMaceComboSet> DefaultComboSet;
 
 	/**
 	 * Animation layer for this style: an unarmed posture, a pistol aim pose.
