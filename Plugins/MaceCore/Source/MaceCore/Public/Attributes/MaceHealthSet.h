@@ -63,8 +63,14 @@ private:
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_MaxHealth, Category = "Mace|Health", Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData MaxHealth;
 
-	/** Meta attribute. Incoming damage for one execution, then cleared. */
-	UPROPERTY(BlueprintReadOnly, Category = "Mace|Health", Meta = (HideFromModifiers, AllowPrivateAccess = true))
+	/**
+	 * Meta attribute. Incoming damage for one execution, then cleared.
+	 *
+	 * Not hidden from modifiers, unlike Health: this is the door damage is meant
+	 * to come through, so an effect has to be able to name it. Health stays
+	 * hidden, which is what keeps this the only way in.
+	 */
+	UPROPERTY(BlueprintReadOnly, Category = "Mace|Health", Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData Damage;
 
 	/** Guards OnOutOfHealth so it fires once rather than on every further hit. */

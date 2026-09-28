@@ -11,13 +11,14 @@
 class UAbilitySystemComponent;
 class UMacePawnData;
 class UMaceAbilitySystemComponent;
+class UMaceCollisionComponent;
 class UMacePawnExtensionComponent;
 
 /**
  * AMacePawn
  *
- * The APawn-based sibling of AMaceCharacter. Same two components, same
- * interfaces, different base class.
+ * The APawn-based sibling of AMaceCharacter. Same components, same interfaces,
+ * different base class.
  *
  * It exists because a movement system is a choice, not a given. ACharacter
  * hard-wires a character movement component, which suits some projects and not
@@ -53,6 +54,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Mace|Combat")
 	UMacePawnExtensionComponent* GetPawnExtensionComponent() const { return PawnExtensionComponent; }
 
+	UFUNCTION(BlueprintPure, Category = "Mace|Combat")
+	UMaceCollisionComponent* GetCollisionComponent() const { return CollisionComponent; }
+
 protected:
 
 	virtual void PostInitializeComponents() override;
@@ -63,6 +67,10 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mace|Combat")
 	TObjectPtr<UMacePawnExtensionComponent> PawnExtensionComponent;
+
+	/** Detects what an attack sweeps through. Idle until an attack opens a window. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mace|Combat")
+	TObjectPtr<UMaceCollisionComponent> CollisionComponent;
 
 	/**
 	 * Which character this is: abilities, attributes, animation and UI.

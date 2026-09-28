@@ -11,17 +11,19 @@
 class UAbilitySystemComponent;
 class UMacePawnData;
 class UMaceAbilitySystemComponent;
+class UMaceCollisionComponent;
 class UMacePawnExtensionComponent;
 
 /**
  * AMaceCharacter
  *
  * A ready-made character base that wires up everything a Mace combatant needs:
- * an ability system component and a pawn extension component, both created in
- * the constructor so a Blueprint child gets them for free.
+ * an ability system component, a pawn extension component and a collision
+ * component, all created in the constructor so a Blueprint child gets them for
+ * free.
  *
- * This class is a convenience, not a requirement. The real product is the pair
- * of components, and any pawn can host them. It exists so the common case is
+ * This class is a convenience, not a requirement. The real product is the
+ * components themselves, and any pawn can host them. It exists so the common case is
  * one reparent away instead of manual component wiring.
  *
  * It knows nothing about any specific movement implementation. A Blueprint
@@ -53,6 +55,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Mace|Combat")
 	UMacePawnExtensionComponent* GetPawnExtensionComponent() const { return PawnExtensionComponent; }
 
+	UFUNCTION(BlueprintPure, Category = "Mace|Combat")
+	UMaceCollisionComponent* GetCollisionComponent() const { return CollisionComponent; }
+
 protected:
 
 	virtual void PostInitializeComponents() override;
@@ -63,6 +68,10 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mace|Combat")
 	TObjectPtr<UMacePawnExtensionComponent> PawnExtensionComponent;
+
+	/** Detects what an attack sweeps through. Idle until an attack opens a window. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mace|Combat")
+	TObjectPtr<UMaceCollisionComponent> CollisionComponent;
 
 	/**
 	 * Which character this is: abilities, attributes, animation and UI.

@@ -29,7 +29,7 @@ class UMacePawnData;
  * UAbilitySystemGlobals rather than a direct cast, so a project that keeps its
  * ASC on the PlayerState instead of the pawn works without changes here.
  */
-UCLASS(ClassGroup = (Mace), Blueprintable, Meta = (BlueprintSpawnableComponent, DisplayName = "Mace Pawn Extension"))
+UCLASS(ClassGroup = (Mace), Meta = (BlueprintSpawnableComponent, DisplayName = "Mace Pawn Extension"))
 class MACECORE_API UMacePawnExtensionComponent : public UPawnComponent
 {
 	GENERATED_BODY()

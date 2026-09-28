@@ -5,6 +5,7 @@
 #include "AbilitySystemComponent.h"
 
 #include "Components/MaceAbilitySystemComponent.h"
+#include "Components/MaceCollisionComponent.h"
 #include "Components/MacePawnExtensionComponent.h"
 #include "Data/MacePawnData.h"
 #include "MaceGameplayTags.h"
@@ -22,6 +23,12 @@ AMaceCharacter::AMaceCharacter(const FObjectInitializer& ObjectInitializer)
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
 	PawnExtensionComponent = CreateDefaultSubobject<UMacePawnExtensionComponent>(TEXT("PawnExtensionComponent"));
+
+	// Every combatant gets one, attacker and target alike: whoever throws a
+	// punch needs somewhere to keep the swing, and today's target is tomorrow's
+	// attacker. It costs nothing while idle, since it only ticks between the
+	// opening and closing of an attack window.
+	CollisionComponent = CreateDefaultSubobject<UMaceCollisionComponent>(TEXT("CollisionComponent"));
 }
 
 UAbilitySystemComponent* AMaceCharacter::GetAbilitySystemComponent() const

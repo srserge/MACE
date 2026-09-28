@@ -75,4 +75,11 @@ namespace MaceGameplayTags
 	// notify state that sends these is Blueprint.
 	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_ComboWindow_Open);
 	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_ComboWindow_Close);
+
+	// Sent by a notify state on an attack montage to mark the stretch in which
+	// the attack can actually hit. Separate from the combo window because they
+	// answer different questions: this one is where the blow lands, that one is
+	// when the next blow can be asked for.
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitWindow_Open);
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitWindow_Close);
 }

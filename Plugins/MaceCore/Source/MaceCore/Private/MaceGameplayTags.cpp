@@ -44,4 +44,7 @@ namespace MaceGameplayTags
 
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Event_ComboWindow_Open, "Mace.Event.ComboWindow.Open", "The attack can now be continued into the next link of the combo.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Event_ComboWindow_Close, "Mace.Event.ComboWindow.Close", "The chance to continue the combo has passed.");
+
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Event_HitWindow_Open, "Mace.Event.HitWindow.Open", "The attack can now connect. Collision detection starts here.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Event_HitWindow_Close, "Mace.Event.HitWindow.Close", "The attack can no longer connect. Collision detection stops here.");
 }
