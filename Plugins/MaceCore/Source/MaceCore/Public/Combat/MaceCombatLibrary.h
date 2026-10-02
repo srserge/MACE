@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "Engine/HitResult.h"
+#include "GameplayTagContainer.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 
 #include "MaceCombatLibrary.generated.h"
@@ -53,4 +55,15 @@ public:
 	 */
 	UFUNCTION(BlueprintPure, Category = "Mace|Combat")
 	static EMaceHitDirection GetHitDirection(const AActor* Target, FVector HitOrigin, float& OutAngle);
+
+	/**
+	 * Which part of the body a hit landed on: a Mace.HitZone tag, as fine as the
+	 * hurtbox that took it. Read it at whatever level matters to you; a check for
+	 * Mace.HitZone.Limb matches a hit on Mace.HitZone.Limb.Arm.Left.
+	 *
+	 * Invalid when the character hit has no hurtboxes, or when the hit did not
+	 * come through them.
+	 */
+	UFUNCTION(BlueprintPure, Category = "Mace|Combat")
+	static FGameplayTag GetHitZone(const FHitResult& Hit);
 };

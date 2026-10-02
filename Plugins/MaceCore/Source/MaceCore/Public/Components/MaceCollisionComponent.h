@@ -4,6 +4,7 @@
 
 #include "Components/ActorComponent.h"
 #include "Engine/EngineTypes.h"
+#include "GameplayTagContainer.h"
 
 #include "MaceCollisionComponent.generated.h"
 
@@ -13,26 +14,67 @@ class USkeletalMeshComponent;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FMaceCollisionHitSignature, AActor*, HitActor, const FHitResult&, Hit);
 
 /**
+ * A hurtbox once its component is gone: where it hangs, its shape and its zone.
+ *
+ * The shape is kept unscaled. Scale is taken from the bone at the moment of the
+ * test, the same way the engine scales a live shape component, so a character
+ * scaled up after BeginPlay still gets hurtboxes that fit.
+ */
+struct FMaceHurtbox
+{
+	TWeakObjectPtr<USkeletalMeshComponent> Mesh;
+
+	/** The socket or bone the hurtbox hangs from, for its transform. */
+	FName AttachName;
+
+	/** The bone under that socket, for the hit result and for physics. */
+	FName BoneName;
+
+	/** Relative to AttachName, scale included. */
+	FTransform RelativeTransform;
+
+	FGameplayTag ZoneTag;
+
+	bool bIsBox = false;
+
+	/** Capsule shape, unscaled. */
+	float Radius = 0.0f;
+	float HalfHeight = 0.0f;
+
+	/** Box shape, unscaled. */
+	FVector Extent = FVector::ZeroVector;
+};
+
+/**
  * UMaceCollisionComponent
  *
- * Detects what a moving limb or blade passes through while an attack is live.
+ * Every combatant carries one, and it plays both sides of a hit.
  *
- * It sweeps spheres along the path each traced socket travelled since the last
- * frame. Sweeping the path rather than testing the current position is the
- * whole point: a fist crosses tens of centimetres between two frames, and a
- * test taken at one instant misses a target that was standing in between.
+ * AS THE ATTACKER, it detects what a moving limb or blade passes through while
+ * an attack is live. It sweeps spheres along the path each traced socket
+ * travelled since the last frame. Sweeping the path rather than testing the
+ * current position is the whole point: a fist crosses tens of centimetres
+ * between two frames, and a test taken at one instant misses a target that was
+ * standing in between.
  *
  * The set of actors already hit lives here, on the attacker, because that is
  * whose swing it is. It cannot live on the notify state that opens the window:
  * notify objects are shared by everyone playing the same montage, so two
  * characters punching at once would share one another's hit list.
  *
+ * AS THE TARGET, it owns the character's hurtboxes. At BeginPlay it gathers the
+ * hurtbox components placed on the character, keeps their shapes as data and
+ * destroys the components. The attacker's sweep only finds the target's broad
+ * volume; asking this component then narrows that down to the part of the body
+ * that was touched. A character with no hurtboxes is still hit as a whole,
+ * exactly as before they existed.
+ *
  * WHAT THIS IS NOT FOR. This detects swept shapes, which is melee, armed or
  * unarmed. A bullet is not a swept shape: it is one instantaneous trace from a
  * muzzle, with no window, no continuity between frames and no need to remember
  * anything, so it belongs in the ranged ability instead. What the two share is
- * everything after the hit - the damage effect, the meta attribute funnel and
- * the confirmed hit event - and that is already common to both.
+ * everything after the hit - the hurtboxes, the damage effect, the meta
+ * attribute funnel and the confirmed hit event.
  *
  * The component carries no damage of its own. It reports what was touched and
  * the ability decides what that costs, which is what keeps one detector usable
@@ -50,6 +92,8 @@ public:
 	/** The collision component on an actor, or null when it has none. */
 	UFUNCTION(BlueprintPure, Category = "Mace|Collision", Meta = (DefaultToSelf = "Actor"))
 	static UMaceCollisionComponent* FindCollisionComponent(const AActor* Actor);
+
+	//~ Attacker side
 
 	/**
 	 * Starts detecting along these sockets until EndWindow.
@@ -84,6 +128,33 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Mace|Collision")
 	FMaceCollisionHitSignature OnHitDetected;
 
+	//~ Target side
+
+	/** True once BeginPlay has found hurtboxes on this character. */
+	bool HasHurtboxes() const { return !Hurtboxes.IsEmpty(); }
+
+	/**
+	 * Finds the hurtbox that a sphere of Radius, sweeping from Start to End,
+	 * touches first, and writes it into InOutHit: bone, impact point and normal.
+	 *
+	 * Returns false when the sweep touches none. The attacker then does not
+	 * count the hit yet: its fist is inside this character's broad volume but
+	 * has not reached the body.
+	 */
+	bool ResolveHurtboxHit(const FVector& Start, const FVector& End, float Radius, FHitResult& InOutHit);
+
+	/**
+	 * The zone of the hurtbox on this bone, or an invalid tag when no hurtbox
+	 * hangs from it. Two hurtboxes on one bone should share a zone; the first
+	 * one wins.
+	 */
+	FGameplayTag GetZoneForBone(FName BoneName) const;
+
+	/** Switches ticking on or off to match what the component has to do. */
+	void RefreshTickEnabled();
+
+	//~ Settings
+
 	/**
 	 * Detect only where the game is authoritative.
 	 *
@@ -108,6 +179,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mace|Collision", Meta = (ClampMin = "0", ClampMax = "16"))
 	int32 SegmentSubdivisions = 0;
 
+	/**
+	 * The channel the sweep runs on. It should find each target's broad hit
+	 * volume and nothing else: hurtboxes do the rest.
+	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mace|Collision")
 	TEnumAsByte<ECollisionChannel> TraceChannel = ECC_Pawn;
 
@@ -121,6 +196,7 @@ public:
 protected:
 
 	//~ Begin UActorComponent
+	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	//~ End UActorComponent
 
@@ -130,6 +206,12 @@ protected:
 	void BuildSamplePoints(TArray<FVector>& OutPoints) const;
 
 	void SweepBetweenFrames(const TArray<FVector>& CurrentPoints);
+
+	/** Reads the hurtbox components on the owner into data and destroys them. */
+	void GatherHurtboxes();
+
+	/** Draws every hurtbox, the one hit last in red. Debug builds only. */
+	void DrawHurtboxes() const;
 
 private:
 
@@ -148,4 +230,10 @@ private:
 	/** Weak, because a target can be destroyed in the middle of the swing that
 	 *  is still holding a reference to it. */
 	TArray<TWeakObjectPtr<AActor>> HitActors;
+
+	TArray<FMaceHurtbox> Hurtboxes;
+
+	/** Which hurtbox was hit last and when, so the debug drawing can flash it. */
+	int32 LastHitHurtbox = INDEX_NONE;
+	double LastHitTime = 0.0;
 };

@@ -32,10 +32,17 @@ namespace MaceGameplayTags
 	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_SwapWeapon);
 	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Interact);
 
-	// Hit zones. Carried by a UPhysicalMaterialWithTags on the physics asset.
+	// Hit zones. Carried by the hurtboxes on each character. Hierarchical on
+	// purpose: a hurtbox carries the finest tag that applies, and each consumer
+	// matches at the level it cares about. A damage rule for Limb covers all four
+	// limbs, while a reaction can tell the left leg from the right.
 	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(HitZone_Head);
 	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(HitZone_Torso);
 	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(HitZone_Limb);
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(HitZone_Limb_Arm_Left);
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(HitZone_Limb_Arm_Right);
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(HitZone_Limb_Leg_Left);
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(HitZone_Limb_Leg_Right);
 
 	// How a hit is classified. Drives the hitmarker in the sample.
 	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage_Class_Normal);

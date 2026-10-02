@@ -21,6 +21,10 @@ namespace MaceGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(HitZone_Head, "Mace.HitZone.Head", "Critical zone. Usually lethal.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(HitZone_Torso, "Mace.HitZone.Torso", "Default body zone.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(HitZone_Limb, "Mace.HitZone.Limb", "Marked zone. Usually incapacitating rather than lethal.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(HitZone_Limb_Arm_Left, "Mace.HitZone.Limb.Arm.Left", "Left arm.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(HitZone_Limb_Arm_Right, "Mace.HitZone.Limb.Arm.Right", "Right arm.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(HitZone_Limb_Leg_Left, "Mace.HitZone.Limb.Leg.Left", "Left leg.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(HitZone_Limb_Leg_Right, "Mace.HitZone.Limb.Leg.Right", "Right leg.");
 
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Damage_Class_Normal, "Mace.Damage.Class.Normal", "Standard hit. Neutral hitmarker.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Damage_Class_NonLethal, "Mace.Damage.Class.NonLethal", "Incapacitating hit. Yellow hitmarker.");

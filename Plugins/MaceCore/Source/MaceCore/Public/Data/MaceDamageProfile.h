@@ -20,7 +20,10 @@ struct FMaceDamageZoneRule
 {
 	GENERATED_BODY()
 
-	/** Which zone. Carried by a UPhysicalMaterialWithTags on the physics asset. */
+	/**
+	 * Which zone. Matched hierarchically, so a rule for Mace.HitZone.Limb also
+	 * covers a hit on Mace.HitZone.Limb.Arm.Left.
+	 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mace", Meta = (Categories = "Mace.HitZone"))
 	FGameplayTag ZoneTag;
 
@@ -50,8 +53,8 @@ struct FMaceDamageZoneRule
 /**
  * UMaceDamageProfile
  *
- * The full set of zone rules for a character. A designer marks new zones on the
- * physics asset and adds a row here; no code changes.
+ * The full set of zone rules for a character. A designer tags a hurtbox on the
+ * character with a zone and adds a row here; no code changes.
  */
 UCLASS(BlueprintType, Const, Meta = (DisplayName = "Mace Damage Profile"))
 class MACECORE_API UMaceDamageProfile : public UPrimaryDataAsset

@@ -12,7 +12,11 @@ class UMaceInputConfig;
  * UMacePlayerData
  *
  * A pawn data asset for a player-controlled character. Adds the pieces an AI
- * combatant has no use for: input bindings, on-screen UI and weapon slots.
+ * combatant has no use for: input bindings and weapon slots.
+ *
+ * Widgets are not here. A player finds its HUD the same way an enemy finds its
+ * health bar, through the widget roles in UMacePawnData::Widgets, so the two
+ * kinds of character share one mechanism instead of keeping two.
  */
 UCLASS(BlueprintType, Const, Meta = (DisplayName = "Mace Player Data"))
 class MACECORE_API UMacePlayerData : public UMacePawnData
@@ -26,16 +30,6 @@ public:
 	/** Which input actions this character responds to, and under which tags. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mace|Input")
 	TObjectPtr<UMaceInputConfig> InputConfig;
-
-	/**
-	 * HUD widgets belonging to this character.
-	 *
-	 * Typed as UObject with a MetaClass filter rather than TSoftClassPtr<UUserWidget>
-	 * on purpose: it gives the editor a widget-only picker without dragging UMG
-	 * into a runtime gameplay core. A dedicated server should not link UMG.
-	 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mace|UI", Meta = (MetaClass = "/Script/UMG.UserWidget"))
-	TArray<TSoftClassPtr<UObject>> HUDWidgets;
 
 	/** How many equipment slots the weapon wheel offers. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mace|Equipment", Meta = (ClampMin = "1"))

@@ -2,7 +2,10 @@
 
 #include "Combat/MaceCombatLibrary.h"
 
+#include "Engine/HitResult.h"
 #include "GameFramework/Actor.h"
+
+#include "Components/MaceCollisionComponent.h"
 
 namespace
 {
@@ -49,4 +52,12 @@ EMaceHitDirection UMaceCombatLibrary::GetHitDirection(const AActor* Target, FVec
 	}
 
 	return (OutAngle > 0.0f) ? EMaceHitDirection::Right : EMaceHitDirection::Left;
+}
+
+FGameplayTag UMaceCombatLibrary::GetHitZone(const FHitResult& Hit)
+{
+	// The zone is not carried by the hit itself. The hit carries the bone, and
+	// the character that was hit knows which of its hurtboxes hangs from it.
+	const UMaceCollisionComponent* Collision = UMaceCollisionComponent::FindCollisionComponent(Hit.GetActor());
+	return Collision ? Collision->GetZoneForBone(Hit.BoneName) : FGameplayTag();
 }
