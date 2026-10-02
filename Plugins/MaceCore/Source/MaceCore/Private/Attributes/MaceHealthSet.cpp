@@ -2,9 +2,11 @@
 
 #include "Attributes/MaceHealthSet.h"
 
+#include "AbilitySystemComponent.h"
 #include "GameplayEffectExtension.h"
 #include "Net/UnrealNetwork.h"
 
+#include "MaceGameplayTags.h"
 #include "MaceLogChannels.h"
 
 UMaceHealthSet::UMaceHealthSet()
@@ -75,10 +77,25 @@ void UMaceHealthSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackD
 	if ((GetHealth() <= 0.0f) && !bOutOfHealth)
 	{
 		bOutOfHealth = true;
+
+		// Death is marked here because every point of damage passes through this
+		// function, whatever dealt it. A tag rather than a flag on the pawn, so
+		// abilities can be blocked by it and IsAlive can read it without knowing
+		// the pawn class. Replicated to every machine, so they all agree on who
+		// is alive. Set rather than added, so a second death never leaves a count
+		// of two for whatever revives the combatant to undo.
+		UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
+		if (ASC && ASC->IsOwnerActorAuthoritative())
+		{
+			ASC->SetLooseGameplayTagCount(MaceGameplayTags::State_Dead, 1, EGameplayTagReplicationState::TagOnly);
+		}
+
 		OnOutOfHealth.Broadcast(OwningActor);
 	}
 	else if (GetHealth() > 0.0f)
 	{
+		// Leaves Mace.State.Dead in place. Coming back from death is an explicit
+		// act, not a side effect of being healed.
 		bOutOfHealth = false;
 	}
 }

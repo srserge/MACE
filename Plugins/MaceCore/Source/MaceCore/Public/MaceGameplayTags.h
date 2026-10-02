@@ -82,4 +82,9 @@ namespace MaceGameplayTags
 	// when the next blow can be asked for.
 	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitWindow_Open);
 	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_HitWindow_Close);
+
+	// Roles a character's widgets can play: the keys of UMacePawnData::Widgets.
+	// Native because the pawn data and whoever looks the role up have to agree
+	// on it character for character, and a typo there fails without a word.
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(UI_Widget_HealthBar);
 }

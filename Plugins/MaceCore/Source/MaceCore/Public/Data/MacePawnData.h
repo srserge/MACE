@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Engine/DataAsset.h"
+#include "GameplayTagContainer.h"
 
 #include "MacePawnData.generated.h"
 
@@ -65,4 +66,23 @@ public:
 	/** How this character reacts to hits, per body zone. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mace|Damage")
 	TObjectPtr<UMaceDamageProfile> DamageProfile;
+
+	/**
+	 * Widgets this character offers, keyed by the role each one plays.
+	 *
+	 * The tag names the role, such as Mace.UI.Widget.HealthBar, and the value is
+	 * the widget that plays it for this character. Leaving a role out is how a
+	 * character goes without it: a street pedestrian has no health bar, a knight
+	 * does, and a boss can point the same role at a widget of its own.
+	 *
+	 * Nothing here creates a widget. Whoever owns the role - the widget component
+	 * above an enemy, the HUD of a player - looks its tag up and builds the widget
+	 * itself, which is what keeps UMG out of the core.
+	 *
+	 * Typed as UObject with a MetaClass filter rather than TSoftClassPtr<UUserWidget>
+	 * for the same reason: a widget-only picker in the editor without linking UMG,
+	 * which a dedicated server has no use for.
+	 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mace|UI", Meta = (Categories = "Mace.UI.Widget", MetaClass = "/Script/UMG.UserWidget", ForceInlineRow))
+	TMap<FGameplayTag, TSoftClassPtr<UObject>> Widgets;
 };

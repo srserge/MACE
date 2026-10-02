@@ -47,4 +47,6 @@ namespace MaceGameplayTags
 
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Event_HitWindow_Open, "Mace.Event.HitWindow.Open", "The attack can now connect. Collision detection starts here.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Event_HitWindow_Close, "Mace.Event.HitWindow.Close", "The attack can no longer connect. Collision detection stops here.");
+
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(UI_Widget_HealthBar, "Mace.UI.Widget.HealthBar", "Shows how much health a character has left.");
 }
