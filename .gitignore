@@ -16,6 +16,7 @@ Saved/
 .idea/
 .vs/
 .vscode/
+*.DotSettings.user
 
 # OS
 .DS_Store
