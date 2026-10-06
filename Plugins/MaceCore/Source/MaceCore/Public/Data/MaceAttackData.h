@@ -94,6 +94,28 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mace|Impact")
 	bool bBreaksGuard = false;
 
+	/**
+	 * How hard and which way the blow pushes the body it lands on, as a velocity
+	 * in centimetres per second, in the attacker's frame: X forward, Y to the
+	 * attacker's right, Z up. A jab pushes back, a right hook pushes to the
+	 * attacker's left, an uppercut lifts.
+	 *
+	 * It belongs to the blow, not to whoever reacts to it, so a jab pushes the
+	 * same whether it kills or not. How much of it the body takes is up to the
+	 * reaction: a ragdoll, a physical hit reaction, a knockback.
+	 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mace|Impact", Meta = (ForceUnits = "cm/s"))
+	FVector ImpactVelocity = FVector::ZeroVector;
+
+	/**
+	 * ImpactVelocity turned into world space by the attacker's facing.
+	 *
+	 * Only the yaw is used, so an attacker leaning into the blow does not tilt
+	 * the push into the ground. Zero when there is no attacker.
+	 */
+	UFUNCTION(BlueprintPure, Category = "Mace|Impact")
+	FVector GetWorldImpactVelocity(const AActor* Attacker) const;
+
 	/** Effect and sound played at the point of impact. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mace|Feedback", Meta = (Categories = "GameplayCue"))
 	FGameplayTag HitCue;
