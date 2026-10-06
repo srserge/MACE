@@ -66,11 +66,12 @@ private:
 	/**
 	 * Meta attribute. Incoming damage for one execution, then cleared.
 	 *
-	 * Not hidden from modifiers, unlike Health: this is the door damage is meant
-	 * to come through, so an effect has to be able to name it. Health stays
-	 * hidden, which is what keeps this the only way in.
+	 * Hidden from modifiers like Health: UMaceDamageExecution is the only thing
+	 * that writes it, so every hit goes through the target's zone rules. An effect
+	 * that adds damage directly would skip them, which is why the editor does not
+	 * offer it.
 	 */
-	UPROPERTY(BlueprintReadOnly, Category = "Mace|Health", Meta = (AllowPrivateAccess = true))
+	UPROPERTY(BlueprintReadOnly, Category = "Mace|Health", Meta = (HideFromModifiers, AllowPrivateAccess = true))
 	FGameplayAttributeData Damage;
 
 	/** Guards OnOutOfHealth so it fires once rather than on every further hit. */
