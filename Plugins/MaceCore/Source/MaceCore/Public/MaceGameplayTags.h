@@ -94,4 +94,10 @@ namespace MaceGameplayTags
 	// Native because the pawn data and whoever looks the role up have to agree
 	// on it character for character, and a typo there fails without a word.
 	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(UI_Widget_HealthBar);
+
+	// Roots that the tag pickers on UMaceAttackData and UMaceComboSet filter by.
+	// Only the roots are native: each project adds its own attacks and combos
+	// beneath them. Without them a new project opens those pickers empty.
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Attack);
+	MACECORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Combo);
 }
