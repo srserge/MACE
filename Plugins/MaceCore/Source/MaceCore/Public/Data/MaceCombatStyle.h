@@ -56,6 +56,24 @@ public:
 	TObjectPtr<UMaceComboSet> DefaultComboSet;
 
 	/**
+	 * The table that picks which combo set to throw, given an FMaceAttackContext.
+	 * When it is empty, or matches no row, the style falls back to
+	 * DefaultComboSet.
+	 *
+	 * Typed as a plain object because Chooser is off limits to MaceCore: the
+	 * AllowedClasses filter is metadata, so the picker only offers Chooser
+	 * Tables without the module depending on them. Soft for the same reason the
+	 * anim layer is: the table lives in whichever layer evaluates it.
+	 * @note Expected to be a Chooser Table whose context is FMaceAttackContext
+	 *       and whose result is a UMaceComboSet.
+	 * @note Not read yet. Blueprint cannot evaluate a table that arrives as data,
+	 *       so the sample's melee ability evaluates its own table directly until
+	 *       MaceAnimation provides the bridge. Setting this changes nothing today.
+	 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mace|Combat", Meta = (AllowedClasses = "/Script/Chooser.ChooserTable"))
+	TSoftObjectPtr<UObject> ComboChooser;
+
+	/**
 	 * Animation layer for this style: an unarmed posture, a pistol aim pose.
 	 *
 	 * Soft on purpose. A soft class pointer is a path, not a pointer, so it
