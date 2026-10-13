@@ -16,6 +16,7 @@ Saved/
 .idea/
 .vs/
 .vscode/
+*.DotSettings.user
 
 # OS
 .DS_Store
@@ -25,4 +26,6 @@ Thumbs.db
 # GASP se reimporta siguiendo la guia de importacion.
 /Content/*
 !/Content/Sandbox/
-'@
+
+# Documentacion interna: no forma parte del producto.
+Docs/
