@@ -1,39 +1,99 @@
-# Mace Engine
+# MACE — Modular Advanced Combat Engine
 
-Proyecto de Unreal Engine 5.8 que sirve de **banco de pruebas** para los plugins de
-combate de Mace Engine.
+A melee combat system for **Unreal Engine 5.8**, built as a set of portable plugins on top of the
+Gameplay Ability System.
 
-El producto son los plugins de `Plugins/`. Este proyecto existe para desarrollarlos y
-probarlos contra contenido real: es el anfitrión, no el entregable.
+> **Work in progress.** The melee combat chain is playable end to end. Ranged combat, AI, blocking
+> and the debug tools are still ahead.
 
 ---
 
-## Requisitos
+## What it does today
+
+- **Combos driven by data.** Each blow is a DataAsset (montage, damage, trace sockets, impact
+  force); a combo is an ordered list of blows; a Chooser table picks which combo to throw from the
+  context of the fight. Chaining happens inside a window marked on the animation, with input
+  buffering so early presses are not lost.
+- **Hit detection by body zone.** Hurtboxes are authored as components on bones, then read into
+  plain data and destroyed at `BeginPlay`, so a character nobody is hitting costs nothing. Swept
+  sphere traces resolve which zone each blow lands on.
+- **Damage by zone.** A GAS execution calculation multiplies the attack's base damage by the
+  target's rule for the struck zone: a headshot hurts more than a blow to the arm.
+- **Hit reactions.** Direction and zone pick the reaction montage through a Chooser table, and a
+  partial physics blend on the upper body pushes the struck bone before blending back to the
+  animation.
+- **Death.** A ragdoll with optional physical animation that fades out, carrying the momentum of the
+  killing blow. The corpse stays in the world, can be pushed around and stops costing CPU once it
+  settles.
+
+## Architecture
+
+```
+MaceSample  ──▶  MaceAnimation  ──▶  MaceCore  ◀──  MaceDebug
+```
+
+| Plugin | Role | Status |
+|---|---|---|
+| `MaceCore` | The contract: base DataAssets, attributes, components, gameplay tags, interfaces | In progress |
+| `MaceAnimation` | Bridge to PoseSearch, Chooser and Motion Warping. Deliberately expendable | Planned |
+| `MaceSample` | The gym: characters, abilities, DataAssets and level. No code | Lives in `Content/Sandbox` for now |
+| `MaceDebug` | In-game debug menu | Planned |
+
+Two rules hold the structure together:
+
+1. **No plugin references `/Game/`.** A plugin that points at project content stops being
+   portable, and nothing tells you until you try it elsewhere.
+2. **Dependencies only point towards the core.** `MaceCore` depends on nothing experimental:
+   PoseSearch, Chooser, Mover and Motion Warping are kept out of it on purpose.
+
+### Design decisions worth knowing
+
+- **Abilities are authored in Blueprint** on top of C++ base classes. C++ provides the framework;
+  designers own the behaviour.
+- **The Ability System Component lives on the pawn**, not on the PlayerState, because enemies have
+  no PlayerState. It is always reached through `IAbilitySystemInterface`, never by casting.
+- **The combat style is derived, never stored.** It comes from the equipped weapon, falling back to
+  the character's base style. Stances such as blocking or aiming are gameplay tags, not styles, so
+  they never grant or revoke abilities.
+- **DataAssets are never written at runtime.** In Play In Editor they are not duplicated, so a
+  write would leak into the editor asset between sessions.
+- **Impact classes and hit zones are gameplay tags, not enums**, so a game built on MACE can add its
+  own without recompiling the core. Zones are hierarchical: `Mace.HitZone.Limb.Arm.Left` is also a
+  `Mace.HitZone.Limb`.
+- **Network-ready, not network-tested.** Damage is server-authoritative and every attribute change
+  goes through a GameplayEffect.
+
+## Repository layout
+
+```
+MaceEngine/
+├── Plugins/MaceCore/     The core plugin: C++ only
+├── Content/Sandbox/      Test content: abilities, characters, DataAssets, Chooser tables
+├── Config/               Collision channels, gameplay tags, CVars
+├── Source/MaceEngine/    The host project module, minimal on purpose
+└── MaceEngine.uproject
+```
+
+The project is the host, not the product: the plugins are what MACE ships.
+
+---
+
+## Getting started
+
+### Requirements
 
 | | |
 |---|---|
-| Motor | Unreal Engine **5.8.1** |
-| IDE | Visual Studio 2022 con *Desarrollo de juegos con C++* |
-| Contenido | **Game Animation Sample Project (GASP) 5.8**, desde el Epic Games Launcher |
-| Control de versiones | Git con **Git LFS** instalado (`git lfs install`) |
+| Engine | Unreal Engine **5.8.1** |
+| IDE | Visual Studio 2022 or later with *Game development with C++*, or Rider |
+| Content | **Game Animation Sample Project (GASP) 5.8**, from the Epic Games Launcher |
+| Version control | Git with **Git LFS** (`git lfs install`) |
 
----
+### 1. Bring in the GASP content
 
-## Puesta en marcha desde un clon limpio
-
-El repositorio ya trae la configuración completa: los 21 plugins activados en
-`MaceEngine.uproject`, y en `Config/` los canales de colisión, las Data-Driven CVars,
-los Gameplay Tags y los ajustes de skinning y física que GASP necesita.
-
-Lo único que falta tras clonar es el contenido, que **no se versiona** (ver más abajo).
-
-### 1. Instalar GASP
-
-Descarga *Game Animation Sample Project* para 5.8 desde el Epic Games Launcher.
-
-### 2. Migrar el contenido
-
-Abre GASP en el editor y, desde el Content Browser, selecciona estas carpetas:
+The character, locomotion and level come from Epic's Game Animation Sample Project, which is not
+versioned here. Install GASP 5.8, open it, select these folders in the Content Browser and
+**Migrate…** them into `<clone>/MaceEngine/Content`, with the MaceEngine editor closed:
 
 ```
 Content/Blueprints
@@ -45,114 +105,27 @@ Content/Widgets
 Content/Levels/LevelPrototyping
 ```
 
-Clic derecho → **Migrate…** → destino:
+The target must end in `\Content`; picking the project root produces `Content\Content\…`.
+`LevelPrototyping` is required: it defines `LevelBlock_Traversable`, without which
+`AC_TraversalLogic` does not compile.
 
-```
-<ruta-del-clon>/MaceEngine/Content
-```
+### 2. Build
 
-> El destino debe terminar en `\Content`. Si seleccionas la raíz del proyecto acabarás
-> con `Content\Content\…` y hay que borrar y repetir.
+Right-click `MaceEngine.uproject` → *Generate Visual Studio project files*, then build
+`MaceEngineEditor | Development Editor | Win64`.
 
-`LevelPrototyping` no es opcional: define `LevelBlock_Traversable`, sin la cual
-`AC_TraversalLogic` no compila, y es la única geometría que trae el perfil de colisión
-`TraversalObjectPreset` asignado.
+### 3. Animations not included
 
-**El editor de MaceEngine debe estar cerrado durante la migración.**
-
-### 3. Compilar
-
-```powershell
-# Clic derecho en MaceEngine.uproject -> Generate Visual Studio project files
-# Después, compilar el target MaceEngineEditor | Development Editor | Win64
-```
-
-### 4. Verificar
-
-Abre el proyecto y comprueba, en `Content/Sandbox/Levels` o en un nivel propio:
-
-- [ ] El personaje se mueve sin patinar y cambia de marcha con fluidez
-- [ ] Los pasos suenan al caminar
-- [ ] Saltar sobre un `LevelBlock_Traversable` dispara la animación de traversal
-- [ ] El ragdoll se activa y el personaje se levanta
-- [ ] `Message Log → Load Errors` está vacío tras reiniciar
-
-Si la consola no reconoce `DDCvar.Traversal.DrawDebugLevel`, la configuración no se
-aplicó y el problema está en `Config/`, no en la migración.
+The attack, locomotion and hit reaction animations come from third-party packs whose licences do
+not allow redistribution, so they are not in this repository. The project opens and the systems are
+all there, but montages that reference those packs will be missing until you provide your own.
 
 ---
 
-## Qué se versiona y qué no
+## Licence
 
-| Ruta | Versionado | Motivo |
-|---|---|---|
-| `Config/` | Sí | La receta completa de la importación |
-| `Source/` | Sí | Módulo del proyecto |
-| `Plugins/` | Sí | **El producto** |
-| `Content/Sandbox/` | Sí | Contenido propio de pruebas |
-| `Content/*` (resto) | **No** | Contenido de Epic, reproducible con los pasos de arriba |
+© srSerge. All rights reserved. The source is published for viewing.
 
-GASP son ~3,2 GB de contenido de Epic sin modificar. Versionarlo no aporta nada —nunca
-vas a hacer un diff de una animación— y agota la cuota de Git LFS. El repositorio
-guarda la receta, no el resultado.
-
-La exclusión está en `.gitignore` como `/Content/*` con `!/Content/Sandbox/`, así que
-cualquier carpeta que migres en el futuro queda ignorada automáticamente.
-
----
-
-## Regla: no modifiques assets de GASP
-
-Si necesitas una versión alterada de algo de GASP —por ejemplo un `SandboxCharacter`
-con un componente de combate— **duplícalo a `Content/Sandbox/` y modifica la copia**.
-
-Un cambio hecho sobre un asset de GASP es invisible para git y se pierde en el
-siguiente clon. Es la misma disciplina que rige los plugins, extendida a `/Game/`.
-
----
-
-## Arquitectura
-
-El sistema de combate se reparte en tres plugins con dependencias en un solo sentido:
-
-```
-MaceCombat            núcleo. Solo código y datos no visuales.
-   ↑                  Sin dependencias experimentales.
-MaceCombatAnimation   puente con PoseSearch, Chooser y Motion Warping.
-   ↑                  Capa sacrificable ante cambios de versión del motor.
-MaceModernCombat      Game Feature: personaje, habilidades y nivel de ejemplo.
-```
-
-Dos reglas que no pueden romperse:
-
-1. **Ningún plugin referencia `/Game/`.** Si un asset de un plugin apunta a contenido
-   del proyecto, el plugin deja de ser portable y no te enteras hasta que lo pruebes
-   fuera de aquí.
-2. **Las dependencias solo apuntan hacia abajo.** Nunca al revés, nunca al proyecto.
-
-La prueba de que ambas se cumplen: copiar `Plugins/` a un proyecto en blanco y que
-compile y funcione. Conviene repetirla al cerrar cada bloque de trabajo.
-
----
-
-## Estructura
-
-```
-MaceEngine/
-├── Config/              Canales de colisión, CVars, tags. Versionado.
-├── Content/             GASP (ignorado) + Sandbox/ (versionado)
-├── Plugins/             Los plugins de combate. El producto.
-├── Source/MaceEngine/   Módulo del proyecto. Mínimo a propósito.
-└── MaceEngine.uproject  21 plugins de motor activados
-```
-
----
-
-## Licencia y contenido de terceros
-
-El *Game Animation Sample Project* es propiedad de Epic Games y se distribuye bajo la
-licencia de contenido de Unreal Engine. Su uso dentro de un proyecto de UE está
-permitido; **redistribuirlo dentro de un plugin no lo está.**
-
-Por eso GASP vive en `Content/` y nunca dentro de `Plugins/`: los plugins deben poder
-distribuirse sin él.
+The Game Animation Sample Project is owned by Epic Games and used under the Unreal Engine content
+licence. It lives in `Content/` and never inside `Plugins/`, so the plugins can be distributed
+without it.
